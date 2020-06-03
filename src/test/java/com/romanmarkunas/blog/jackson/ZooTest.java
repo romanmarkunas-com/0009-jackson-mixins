@@ -56,4 +56,17 @@ class ZooTest {
 
         assertEquals(jsonIn, jsonOut);
     }
+
+    @Test
+    void failsToDeserializeWithoutDefaultConstructorAndIncorrectMixIn() {
+        ObjectMapper objectMapper
+                = new ObjectMapper()
+                .addMixIn(ImmutableZoo.class, ImmutableZooMixInFail.class);
+        String jsonIn = "{\"giraffeCount\":5,\"open\":true}";
+
+        assertThrows(
+                InvalidDefinitionException.class,
+                () -> objectMapper.readValue(jsonIn, ImmutableZoo.class)
+        );
+    }
 }
