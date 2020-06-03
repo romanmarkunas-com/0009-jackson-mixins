@@ -69,4 +69,17 @@ class ZooTest {
                 () -> objectMapper.readValue(jsonIn, ImmutableZoo.class)
         );
     }
+
+    @Test
+    void canDeserializeWithoutDefaultConstructorButWithNavigatableMixIn() throws JsonProcessingException {
+        ObjectMapper objectMapper
+                = new ObjectMapper()
+                .addMixIn(ImmutableZoo.class, ImmutableZooMixInNavigatable.class);
+        String jsonIn = "{\"giraffeCount\":5,\"open\":true}";
+
+        ImmutableZoo zoo = objectMapper.readValue(jsonIn, ImmutableZoo.class);
+        String jsonOut = objectMapper.writeValueAsString(zoo);
+
+        assertEquals(jsonIn, jsonOut);
+    }
 }
