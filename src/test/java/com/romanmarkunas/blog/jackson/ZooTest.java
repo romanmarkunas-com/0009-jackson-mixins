@@ -3,7 +3,6 @@ package com.romanmarkunas.blog.jackson;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,14 +45,15 @@ class ZooTest {
     }
 
     @Test
-    @Disabled
-    void canDeserializeWithoutDefaultConstructorButWithMixIn() {
-        ObjectMapper objectMapper = new ObjectMapper().addMixIn(ImmutableZoo.class, null);
+    void canDeserializeWithoutDefaultConstructorButWithMixIn() throws JsonProcessingException {
+        ObjectMapper objectMapper
+                = new ObjectMapper()
+                .addMixIn(ImmutableZoo.class, ImmutableZooMixIn.class);
         String jsonIn = "{\"giraffeCount\":5,\"open\":true}";
 
-        assertThrows(
-                InvalidDefinitionException.class,
-                () -> objectMapper.readValue(jsonIn, ImmutableZoo.class)
-        );
+        ImmutableZoo zoo = objectMapper.readValue(jsonIn, ImmutableZoo.class);
+        String jsonOut = objectMapper.writeValueAsString(zoo);
+
+        assertEquals(jsonIn, jsonOut);
     }
 }
