@@ -7,8 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ZooTest {
 
@@ -123,6 +122,33 @@ class ZooTest {
 
         NotFollowingJavaPropertyConventionZoo zoo
                 = new NotFollowingJavaPropertyConventionZoo(42, false);
+        String jsonOut = objectMapper.writeValueAsString(zoo);
+
+        assertEquals(expectedOut, jsonOut);
+    }
+
+
+    @Test
+    void serializesCachedFieldIncorrectly() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String expectedOut = "{\"giraffeCount\":42,\"sealCount\":13}";
+        String wrongOut = "{\"giraffeCount\":42,\"sealCount\":13,\"totalCount\":55}";
+
+        HasPropertiesToIgnoreZoo zoo = new HasPropertiesToIgnoreZoo(42, 13);
+        String jsonOut = objectMapper.writeValueAsString(zoo);
+
+        assertNotEquals(expectedOut, jsonOut);
+        assertEquals(wrongOut, jsonOut);
+    }
+
+    @Test
+    void serializesCachedFieldCorrectlyWithMixIn() throws JsonProcessingException {
+        ObjectMapper objectMapper
+                = new ObjectMapper()
+                .addMixIn(HasPropertiesToIgnoreZoo.class, HasPropertiesToIgnoreZooMixIn.class);
+        String expectedOut = "{\"giraffeCount\":42,\"sealCount\":13}";
+
+        HasPropertiesToIgnoreZoo zoo = new HasPropertiesToIgnoreZoo(42, 13);
         String jsonOut = objectMapper.writeValueAsString(zoo);
 
         assertEquals(expectedOut, jsonOut);
