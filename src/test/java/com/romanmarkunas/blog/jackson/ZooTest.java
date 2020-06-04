@@ -1,5 +1,7 @@
 package com.romanmarkunas.blog.jackson;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
@@ -81,5 +83,48 @@ class ZooTest {
         String jsonOut = objectMapper.writeValueAsString(zoo);
 
         assertEquals(jsonIn, jsonOut);
+    }
+
+
+    @Test
+    void failsToSerializeIfMethodsDoNotFollowPropertyConvention() {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        NotFollowingJavaPropertyConventionZoo zoo = new NotFollowingJavaPropertyConventionZoo(42, false);
+        assertThrows(
+                InvalidDefinitionException.class,
+                () -> objectMapper.writeValueAsString(zoo)
+        );
+    }
+
+    @Test
+    void canSerializeIfMethodsDoNotFollowPropertyConventionButMapperIsConfiguredToLookAtFields() throws JsonProcessingException {
+        ObjectMapper objectMapper
+                = new ObjectMapper()
+                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        String expectedOut = "{\"giraffeCount\":42,\"open\":false}";
+
+        NotFollowingJavaPropertyConventionZoo zoo
+                = new NotFollowingJavaPropertyConventionZoo(42, false);
+        String jsonOut = objectMapper.writeValueAsString(zoo);
+
+        assertEquals(expectedOut, jsonOut);
+    }
+
+    @Test
+    void canSerializeIfMethodsDoNotFollowPropertyConventionButWithMixIn() throws JsonProcessingException {
+        ObjectMapper objectMapper
+                = new ObjectMapper()
+                .addMixIn(
+                        NotFollowingJavaPropertyConventionZoo.class,
+                        NotFollowingJavaPropertyConventionZooMixIn.class
+                );
+        String expectedOut = "{\"giraffeCount\":42,\"open\":false}";
+
+        NotFollowingJavaPropertyConventionZoo zoo
+                = new NotFollowingJavaPropertyConventionZoo(42, false);
+        String jsonOut = objectMapper.writeValueAsString(zoo);
+
+        assertEquals(expectedOut, jsonOut);
     }
 }
